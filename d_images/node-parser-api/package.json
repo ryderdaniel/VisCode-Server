@@ -1,0 +1,16 @@
+{
+  "name": "node-parser-api",
+  "version": "1.0.0",
+  "description": "API to generate node JSON objects",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ryder Khoi Daniel",
+  "license": "ISC",
+  "dependencies":{
+  	"express":"latest",
+    "axios":"latest",
+    "cors":"latest"
+  }
+}

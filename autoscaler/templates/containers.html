@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>VisCode Management Console</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js" integrity="sha512-QSkVNOCYLtj73J4hbmVoOV6KVZuMluZlioC+trLpewV8qMjsWqlIQvkn1KGX2StWvPMdWGBqim1xlC8krl1EKQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	{{ turbo() }}
+	<script>
+		function killContainer(container_id){
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", "/kill", true);
+			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+			xhr.send("container_name="+container_id);
+		}
+
+		function spawnContainer(service_name){
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", "/spawn", true);
+			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+			xhr.send("service="+service_name);
+		}
+	</script>
+</head>
+<body>
+	
+
+<div class="jumbotron text-center">
+ 	<h1>VisCode Container Management Console</h1>
+	<p>Observe system health, and manual controls for container creation/deletion.</p>
+	<div class="container py-2">
+		<div class="row justify-content-center">
+			<div class="col-sm-6">
+				<div class="card">
+					<div class="card-header bg-warning"><h4>System Panel</h4></div>
+					<div class="card-body ">
+						<button type="button" class="btn btn-danger" onclick="killContainer('all')">Stop ALL Containers</button>
+						<button type="button" class="btn btn-success" onclick="spawnContainer('startbuild')">Force Minimum</button>
+						<button type="button" class="btn btn-info" onclick="window.open('/events')">System Events</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container py-2">
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="card">
+				<div class="card-header"><h4>CPU Usage (%)</h4></div>
+				<div class="card-body">
+					<canvas id="cpuchart"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% include "stats.html" %}
+
+<script type="text/javascript">
+	var ctx = document.getElementById("cpuchart").getContext("2d");
+	// {{ labels | safe }}
+	// {{ data | safe }}
+	var cpuchart = new Chart(ctx, {
+		type: "line",
+		data: {
+			labels: {{ labels | safe }},
+			datasets: [
+				{
+					label: "nginx",
+					data: {{ data['nginx'] | safe }},
+					fill: false,
+					borderColor: "rgb(0, 200, 0)"
+				},
+				{
+					label: "Frontend",
+					data: {{ data['frontend'] | safe }},
+					fill: false,
+					borderColor: "rgb(245,193,40)"
+				},
+				{
+					label: "Node Parser",
+					data: {{ data['node-parser-api'] | safe }},
+					fill: false,
+					borderColor: "rgb(23,162,184)"
+				},
+				{
+					label: "Python Debuggers",
+					data: {{ data['vis-python-api'] | safe }},
+					fill: false,
+					borderColor: "rgb(220,53,69)"
+				},
+				{
+					label: "Java Debuggers",
+					data: {{ data['vis-java-api'] | safe }},
+					fill: false,
+					borderColor: "rgb(62,126,252)"
+				}
+			]
+		},
+		options: {
+			responsive: true,
+			scales: {
+				y: {
+					min: 0
+				}
+			}
+		}
+	});
+
+	setInterval(updateGraph, 2000);
+	function updateGraph(){
+		$.getJSON( "/stats", function( info ) {
+			cpuchart.data.labels = info.labels;
+			cpuchart.data.datasets[0].data = info.stats["nginx"];
+			cpuchart.data.datasets[1].data = info.stats["frontend"];
+			cpuchart.data.datasets[2].data = info.stats["node-parser-api"];
+			cpuchart.data.datasets[3].data = info.stats["vis-python-api"];
+			cpuchart.data.datasets[4].data = info.stats["vis-java-api"];
+			cpuchart.update();
+		});
+	}
+
+</script>
+
+</body>
+</html>

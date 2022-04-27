@@ -1,0 +1,14 @@
+{
+  "name": "vis-python-api",
+  "version": "1.0.0",
+  "description": "web api for generating a stack trace of python scripts",
+  "main": "vis-python-api.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ryder Khoi Daniel",
+  "license": "ISC",
+  "dependencies":{
+  	"express":"latest"
+  }
+}

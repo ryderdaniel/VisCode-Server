@@ -1,0 +1,17 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "Frontend for recieving requests and forwarding to debuggers",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ryder Khoi Daniel",
+  "license": "ISC",
+  "dependencies": {
+    "express": "latest",
+    "https": "latest",
+    "cors": "latest",
+    "axios": "latest"
+  }
+}

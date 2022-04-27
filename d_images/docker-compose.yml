@@ -1,0 +1,73 @@
+version: '3.2'
+
+services:
+    frontend:
+        image: frontend
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        deploy: { resources: { limits: { cpus: '1', memory: 256M } },
+                  replicas: 4,
+                  endpoint_mode: dnsrr }
+        restart: always
+        networks:
+            - vis-code
+    node-parser-api:
+        image: node-parser-api
+        build: 
+            context: ./node-parser-api
+            dockerfile: Dockerfile
+        deploy: { resources: { limits: { cpus: '1', memory: 256M } },
+                  replicas: 4,
+                  endpoint_mode: dnsrr }
+        restart: always
+        networks:
+            - vis-code
+    vis-python-api:
+        image: vis-python-api
+        build: 
+            context: ./vis-python-api
+            dockerfile: Dockerfile
+        deploy: { resources: { limits: { cpus: '1', memory: 256M } },
+                  replicas: 4,
+                  endpoint_mode: dnsrr }
+        restart: always
+        networks:
+            - vis-code
+    vis-java-api:
+        image: vis-java-api
+        build:
+            context: ./vis-java-api
+            dockerfile: Dockerfile
+        deploy: { resources: { limits: { cpus: '1', memory: 256M } },
+                  replicas: 4,
+                  endpoint_mode: dnsrr }
+        restart: always
+        networks:
+            - vis-code
+    nginx:
+        image: nginx-proxy
+        build: 
+            context: ./nginx
+            dockerfile: Dockerfile
+        ports: ['443:443']
+        deploy: {resources: { limits: { cpus: '1', memory: 256M } } }
+        restart: always
+        volumes:
+            - proxy-cache:/var/cache/nginx
+        networks:
+            - vis-code
+            - gateway
+        depends_on:
+            - frontend
+
+
+networks:
+    vis-code:
+        driver: bridge
+        internal: true
+    gateway:
+        driver: bridge
+
+volumes:
+    proxy-cache:

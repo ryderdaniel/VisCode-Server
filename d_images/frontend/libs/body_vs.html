@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+* {
+  list-style-type: none;
+}
+
+p {
+  margin: 3px;
+  padding: 0;
+}
+#DiagramPanel {
+	position: relative;
+}
+
+#Footer {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  margin-top: 3px;
+}
+
+#StackTraceButtons {
+  display: flex;
+  flex-direction: row;
+}
+
+.STButton {
+  margin-right: 3px;
+}
+
+textarea {
+  width: 45vw;
+}
+
+#ui {
+  margin-top: 3px;
+  position: relative;
+  width:90vw;
+  height:70vh;
+  border:1px solid #000;
+}
+
+#cy{
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: list-item;
+}
+
+.tab-wrapper {
+  width: 91%;
+  height: 10%;
+  border-radius: 10px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, .1);
+}
+.buttonWrapper {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.tab-button {
+  letter-spacing: 3px;
+  border: none;
+  padding: 7px;
+  background-color: #bccbe9;
+  color: #232c3d;
+  font-size: 17px;
+  cursor: pointer;
+  transition: 0.5s;
+}
+.tab-button:hover {
+  background-color: #d5e3ff;
+}
+
+.tab-button.active {
+  background-color: white;
+}
+.tippy-tooltip.variable-theme {
+  background-color: #BDD7EE;
+  color:black;
+}
+.tippy-tooltip.variable-theme .tippy-arrow {
+  border-left-color: #BDD7EE;
+  border-right-color: #BDD7EE;
+}
+.tippy-tooltip.return-theme {
+  background-color: #e0e0e0;
+  color:black;
+}
+.tippy-tooltip.return-theme .tippy-arrow {
+  border-left-color: #e0e0e0;
+  border-right-color: #e0e0e0;
+}
+.tippy-tooltip.function-theme {
+  background-color: #FFD966;
+  color:black;
+}
+.tippy-tooltip.function-theme .tippy-arrow {
+  border-left-color: #FFD966;
+  border-right-color: #FFD966;
+}
+.tippy-tooltip.class-theme {
+  background-color: #F4B183;
+  color:black;
+}
+.tippy-tooltip.class-theme .tippy-arrow {
+  border-left-color: #F4B183;
+  border-right-color: #F4B183;
+}
+.tippy-tooltip.return-theme {
+  background-color: #e0e0e0;
+  color:black;
+}
+.tippy-tooltip.return-theme .tippy-arrow {
+  border-left-color: #e0e0e0;
+  border-right-color: #e0e0e0;
+}
+.button {
+  background-color: #bccbe9;
+  transition-duration: 0.4s;
+  border-radius: 8px;
+  padding: 7px 3vw;
+}
+
+.button:hover {
+  background-color: white;
+  color: black;
+}
+
+</style>
+<meta charset=utf-8 />
+<meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
+<title>Images</title>
+
+ <!-- libs used by demo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js"></script>
+    <script src="https://unpkg.com/webcola@3.4.0/WebCola/cola.min.js"></script>
+    <script src="https://unpkg.com/popper.js@1.14.4/dist/umd/popper.js"></script>
+    <script src="https://unpkg.com/tippy.js@2.6.0/dist/tippy.all.js"></script>
+
+    <!-- cy libs -->
+    <script src="https://js.cytoscape.org/js/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/cytoscape-cola@2.2.3/cytoscape-cola.js"></script>
+    <script src="https://unpkg.com/cytoscape-popper@1.0.2/cytoscape-popper.js"></script>
+</head>
+<body style="background-color: white;">
+<div class="tab-wrapper">
+    <div class="buttonWrapper">
+      <button class="tab-button active" id="traceTab" style="border-top-left-radius: 10px;"  onclick="showPanel(0)">Trace Diagram</button>
+      <button class="tab-button" id="classTab" onclick="showPanel(1)">Class Diagram</button>
+   </div>
+</div>
+<div id="DiagramPanel" style="width:100%;height:100%">
+	<p id="step_number" >Current step: x/x</p>
+	<div id="ui">
+		<div id="class_diagram"></div>
+		<div id="cy"></div>
+	</div>
+   <div id="Footer">
+      <div id="StackTraceButtons">
+      <div class="STButton">
+        <button class="button" type="button" onclick="prevStackTraceLine()">Prev</button>
+      </div>
+      <div class="STButton">
+         <button class="button" type="button" onclick="nextStackTraceLine()">Next</button>
+      </div>
+      <div class="STButton">
+      <button class="button" type="button" onclick="downloadSourceCode()">Download</button>
+      </div>
+      </div>
+      <div id="Console">
+      <p>
+        Console Output:
+     </p>
+        <textarea wrap="off" readonly id="ConsoleOutput"></textarea>
+      </div>
+      
+   </div>
+      
+</div>
+<!-- Load application code at the end to ensure DOM is loaded -->
+
+<!-- In the actual thing, these tags will be replaced with actual code or an obfuscated form of the code-->
+
+<!--This code will contain functions which facilitate drawing nodes-->
+<script type="text/javascript">
+    <111>
+</script>
+
+<!--This code will facilitate handling things on the cytoscape end-->
+<script type="text/javascript">
+    <222>
+</script>
+
+<script>
+    // cy object initialization needs to go here.
+    function showPanel(type)
+    {   
+      if(type == 0)
+      {
+        document.getElementById("class_diagram").style.setProperty("visibility", "hidden", null);
+        document.getElementById("step_number").style.setProperty("visibility","visible", null);
+        document.getElementById("cy").style.setProperty("visibility","visible", null);
+        document.getElementById("StackTraceButtons").style.setProperty("visibility","visible", null);
+        var tippy = document.getElementsByClassName("tippy-popper")
+        if(tippy.length > 0)
+          tippy[0].style.setProperty("visibility","visible", null);
+        document.getElementById("traceTab").classList.add("active");
+        document.getElementById("classTab").classList.remove("active");
+      }
+      else
+      {
+        document.getElementById("class_diagram").innerHTML = `<444>`;
+        document.getElementById("class_diagram").style.setProperty("visibility", "visible", null);
+        document.getElementById("step_number").style.setProperty("visibility","hidden", null);
+        document.getElementById("cy").style.setProperty("visibility","hidden", null);
+        document.getElementById("StackTraceButtons").style.setProperty("visibility","hidden", null);
+        var tippy = document.getElementsByClassName("tippy-popper")
+        if(tippy.length > 0)
+          tippy[0].style.setProperty("visibility","hidden", null);
+        document.getElementById("classTab").classList.add("active");
+        document.getElementById("traceTab").classList.remove("active");
+      }
+    }
+    // cy object initialization needs to go here.
+    var cy = cytoscape({
+      container: document.getElementById('cy'),
+
+        boxSelectionEnabled: false,
+        autounselectify: true,
+
+        style: cytoscape.stylesheet()
+          .selector('node')
+                .css({
+                    'shape': 'rectangle',
+                    'background-color':'white',
+                    'border-width':'0px'
+                })
+			.selector('edge.loop')
+				.css({
+					 'z-compound-depth':'top',
+					 'loop-direction': '-100deg', 
+					 'loop-sweep': '50deg',
+					 'target-endpoint': '330deg',
+					 'source-endpoint': '200deg',
+					 'curve-style': 'bezier',
+					 'target-arrow-shape': 'triangle-backcurve',
+					 'line-style': 'dashed',
+					 'line-dash-pattern': [8, 2],
+				}),
+        elements: {
+            "nodes": [],
+            "edges": []
+        },
+
+      layout: {
+        name: 'breadthfirst',
+        directed: true,
+        padding: 10
+      }
+    });
+
+    cy.center();
+    cy.fit();
+
+    var nodeJSON = <333>;
+
+    var Interactor = new NodeInteractor(cy,nodeJSON);
+    const vscode = acquireVsCodeApi();
+
+    function prevStackTraceLine(){
+        Interactor.prevFrame();
+        vscode.postMessage({
+            command: 'lineNumberChanged',
+            text: nodeJSON[Interactor.step].line - 1,
+        })
+        updateText();
+    }
+    
+    function nextStackTraceLine(){
+        Interactor.nextFrame();
+        vscode.postMessage({
+            command: 'lineNumberChanged',
+            text: nodeJSON[Interactor.step].line - 1,
+        })
+        updateText();
+    }
+
+    function downloadSourceCode(){
+      vscode.postMessage({ command: 'DownloadVisualization' })
+    }
+
+    function updateText(){
+        var indicator = document.getElementById("step_number");
+        indicator.innerHTML = `Current step: ${Interactor.step}/${Interactor.maxFrame}`;
+    }
+
+    updateText();
+</script>
+</body>
+</html>

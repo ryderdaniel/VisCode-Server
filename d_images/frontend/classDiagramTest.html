@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
+        <script type="text/javascript" src="ClassDiagramComposer.js"></script>
+        <script type="text/javascript" src="ClassView.js"></script>
+        <script type="text/javascript" src="stackTraceOutput.js"></script>
+        <style>
+            #ClassDiagram svg {
+                display:list-item;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="ClassDiagram"></div>
+        <script>
+            document.getElementById("ClassDiagram").innerHTML = 
+                    ClassView.generateClassDiagram(classStackTraceObj);
+        </script>
+    </body>
+</html>

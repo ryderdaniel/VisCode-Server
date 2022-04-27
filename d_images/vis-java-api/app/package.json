@@ -1,0 +1,14 @@
+{
+  "name": "vis-java-api",
+  "version": "1.0.0",
+  "description": "web api for generating a stack trace of java scripts",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ryder Khoi Daniel",
+  "license": "ISC",
+  "dependencies":{
+  	"express":"latest"
+  }
+}

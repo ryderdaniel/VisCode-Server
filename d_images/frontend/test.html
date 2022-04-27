@@ -1,0 +1,525 @@
+
+<!DOCTYPE html>
+<!-- This code is for demonstration purposes only.  You should not hotlink to Github, Rawgit, or files from the Cytoscape.js documentation in your production apps. -->
+<html>
+<head>
+<meta charset=utf-8 />
+<meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
+<title>Images</title>
+
+ <!-- libs used by demo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js"></script>
+    <script src="https://unpkg.com/webcola@3.3.8/WebCola/cola.min.js"></script>
+    <script src="https://unpkg.com/popper.js@1.14.4/dist/umd/popper.js"></script>
+    <script src="https://unpkg.com/tippy.js@2.6.0/dist/tippy.all.js"></script>
+
+    <!-- cy libs -->
+    <script src="https://js.cytoscape.org/js/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/cytoscape-cola@2.2.3/cytoscape-cola.js"></script>
+    <script src="https://unpkg.com/cytoscape-popper@1.0.2/cytoscape-popper.js"></script>
+	
+	<style>
+    #cy,#dialog_area {
+		height: 100%;
+		width: 100%;
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+	.tippy-tooltip.variable-theme {
+		background-color: #BDD7EE;
+		color:black;
+	}
+	.tippy-tooltip.variable-theme .tippy-arrow {
+		border-left-color: #BDD7EE;
+		border-right-color: #BDD7EE;
+	}
+  </style>
+</head>
+<body>
+<div id="dialog_area"><svg height="100%" width="100%" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<div id="cy"></div>
+<!-- Load application code at the end to ensure DOM is loaded -->
+
+
+<script >
+var light_blue = "#BDD7EE";
+var dark_blue = "#4372C4";
+var objectStroke = "#767171";
+var objectHeadBg = "#D9D9D9";
+var objectBoxBg = "#EDEDED";
+var objectTxt = "#7F7F7F";
+var svgns = "http://www.w3.org/2000/svg"
+var max_width = 200;
+var min_height = 31;
+
+
+function getTextDimension(svgDocument,txt,fontFamily,fontSize,fontWeight)
+{
+	svgDocument = document.getElementsByTagName("svg")[0];
+	var element =  document.createElementNS(svgns, "text");;
+	var textelement = document.createTextNode(txt);
+	element.setAttribute("font-size",fontSize);
+	element.setAttribute("font-family",fontFamily);
+	element.setAttribute("font-weight",fontWeight);
+	element.appendChild(textelement);
+	svgDocument.appendChild(element)
+	var bbox = element.getBBox();
+	svgDocument.removeChild(element);
+	return {"width":bbox.width.toFixed(1)*1,"height":bbox.height.toFixed(1)*1};
+	
+}
+function splitTextElement(txt,length)
+{
+	var txtlength = txt.length;
+	var txtperL = length / txtlength;
+	var maxLevel = Math.ceil(length/(max_width-10));
+	var charperLevel = Math.ceil(txt.length/maxLevel);
+	let txtArr = []
+	for (var level=0;level<maxLevel;level++)
+	{
+		var i = level*charperLevel;
+		var j = (i+charperLevel > txtlength ? txtlength:i+charperLevel);
+		txtArr.push(txt.substring(i,j));
+	}
+	return {"width":txtperL*charperLevel,"txtarr":txtArr};
+}
+function createTextElement(txt,paddingLeft,centerY,fontFamily,fontSize,fontWeight,txtColor,className = null)
+{
+	var textString = '<text x="'+paddingLeft+'" y="'+centerY+'" font-family="'+fontFamily+'" font-size="'+fontSize+'" dominant-baseline="middle" style="fill:'+txtColor+';font-weight:'+fontWeight+'"';
+	if(className != null)
+		textString += 'class="'+className+'" ';
+	return textString+'>'+txt+'</text>';
+}
+function createTriangleIcon(dx,dy,orientation,width,degree,fillColor)
+{
+	var triangle = '<polygon class="triangle" ';
+	var pt2X = width;
+	var pt3X = width/2;
+	var pt3Y = pt3X * Math.tan(degree*Math.PI/180);
+	var center = {"x":((3*dx+pt2X+pt3X)/3).toFixed(3)*1,"y":((3*dy+pt3Y)/3).toFixed(3)*1};
+	var points = 'points="'+dx+','+dy+' '+(pt2X+dx)+','+dy+' '+(pt3X+dx)+','+(pt3Y+dy)+'" style="fill:'+fillColor+'"/>';
+	
+	if(orientation == "d")
+		return triangle+points;
+	if (orientation == "l")
+		return triangle+'transform="rotate('+90+','+center.x+','+center.y+')" '+points;
+	if (orientation == "r")
+		return triangle+'transform="rotate('+-90+','+center.x+','+center.y+')" '+points;
+}
+function getSvgHeading(width,height,backgroundColor="white")
+{
+	return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" version="1.1" xmlns="http://www.w3.org/2000/svg" style="background-color:${backgroundColor}">`;
+}
+function createLeftHead(name,value)
+{
+	var bbox = getTextDimension(null,name,"consolas",20,"bold");
+	var txtDict = splitTextElement(name,bbox.width);
+	var txtArray = txtDict.txtarr;
+	var height_level = txtArray.length;
+	var namewidth = 10 + bbox.width;
+	var valuewidth = 0
+	if (value != undefined)
+	{
+		var bbox = getTextDimension(null,value,"consolas",20,"normal");
+		//var txtDict = splitTextElement(value,bbox.width);
+		valuewidth = 10 +bbox.width;
+	}
+	// need A proper spliting here
+	if(width > max_width)
+	{	
+		height_level = Math.ceil((width/max_width));
+		width = 217;
+	}
+	
+	var leftHead = '<rect x="0" y="2" width="10" height="'+height_level*min_height+'" rx="2" style=	"fill:#4372C4;stroke-width:1;stroke:'+dark_blue+'"/>'
+	//var upperdy = (height_level*min_height - bbox.height)/2;
+	
+	var circleList = '<circle cx="5" cy="12" r="1.3" style="fill:white"/><circle cx="5" cy="17" r="1.3" style="fill:white"/><circle cx="5" cy="22" r="1.3" style="fill:white"/>'
+	
+	//Name Box
+	
+	var labelRect = '<rect x="10" y="2" width="'+namewidth+'" height="'+height_level*min_height+'" style="fill:'+light_blue+';stroke-width:0.5;stroke:'+dark_blue+'"/>'
+	var labelElement = createTextElement(name,15,19.5,"consolas",20,"bold","black");
+	
+	// Value Box
+	var valueRect = ""
+	var valueElement = ""
+	if (valuewidth != 0)
+	{
+		valueRect = '<rect x="'+(namewidth+10)+'" y="2" width="'+valuewidth+'" height="'+height_level*min_height+'" style="fill:'+light_blue+';stroke-width:0.5;stroke:'+dark_blue+'"/>'
+	
+		valueElement = createTextElement(value,15+namewidth,19.5,"consolas",20,"normal","black");
+	}
+	var width = 10 + namewidth + valuewidth+ 2 ;  // lefthead width + right node name width + stroke width
+	var height = 31*height_level + 4; // height + stroke width
+	var svgHeading = getSvgHeading(width,height);
+	var svgEnding = '</svg>';
+	
+	return {"bgImage":btoa(svgHeading+leftHead+circleList+labelRect+labelElement+valueRect+valueElement+svgEnding),"width":width,"height":height};
+	
+}
+function createListHead(type,length)
+{
+	var bbox = getTextDimension(null,type+"["+length+"]","consolas",15,"bold");
+	var downtriangle = createTriangleIcon(8,12,'d',15,60,objectStroke);
+	var txt = createTextElement(type+"["+length+"]",30,18,'consolas',15,"bold","black");
+	var glassIcon = '<path  transform="translate('+(30+bbox.width+10)+',7)" x="106.5" height="20" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" d="m9.8,9.8a5.32,5.32 0 1,0-0.9,0.9l5.95,5.95m-3.15-4.1 3.85,3.85-0.91,0.91-4.2-4.2"/>'
+	var rectWidth = 7+15+7+bbox.width+10+20; //dx+triangleWidth+dx+textWidth+dx+glassWidth;
+	var rectHead = '<rect x="1" y="2" width="'+rectWidth+'" height="31" style="fill:'+objectHeadBg+';stroke:'+objectStroke+'; stroke-width:1"/>'
+	
+	var width = rectWidth+2;
+	var height = 31 + 4 // height + stroke width
+	var svgHeading = getSvgHeading(width,height);
+	var svgEnding = '</svg>';
+	return {"bgImage":btoa(svgHeading+rectHead+downtriangle+txt+glassIcon+svgEnding),"width":width,"height":height};
+}
+function createListBody(type,width,keys,values)
+{
+	var rectHeight = 0;
+	width = width - 2;
+	var key = (type == "LIST" ? "index":"keys");
+	var headingtxt1 = createTextElement(key,15,15,"consolas",10,"normal",objectTxt);
+	var headingtxt2 = createTextElement("values",width/2+3,15,"consolas",10,"normal",objectTxt);
+	
+	rectHeight += 40;
+	var indexTxt = ""
+	var valueTxt = ""
+	for (var i=0 ; i < keys.length;i++)
+	{
+		indexTxt += createListBodyValue(0,width,keys[i],i).svgString;
+		valueTxt += createListBodyValue(1,width,values[i],i).svgString;
+	}
+	
+	rectHeight += (-14+25+25);
+	
+	rectHeight += 15 + 15;
+	var rectBody = '<rect x="0" y="0" width="'+width+'" height="'+rectHeight+'" style="fill:'+objectBoxBg+';stroke:'+objectStroke+'; stroke-width:1"/>'
+	
+	width = width+2;
+	var height = rectHeight + 1 // height + stroke width
+	var svgHeading = getSvgHeading(width,height);
+	var groupTranslate = '<g transform="translate(1,0)">'
+	var svgEnding = '</g></svg>';
+	
+	return {"bgImage":btoa(svgHeading+groupTranslate+rectBody+headingtxt1+headingtxt2+indexTxt+valueTxt+svgEnding),"width":width,"height":height};
+}
+function createListBodyValue(type,width,value,index)
+{
+	var xpos = 15;
+	var className = (type == 0 ? "bodyIndex":"bodyValue");
+	var valueTxt = "<g "+'class="'+className+'" >';
+	if (type == 1)
+	{
+		xpos = width/2;
+		valueTxt += '<rect x="'+xpos+'" y="'+(-14+40+25*index)+'" width="40" height="25" style="fill:white;stroke:'+objectStroke+'; stroke-width:1"/>'
+	}
+	
+	if(value != "" || index == 0)
+		valueTxt += createTextElement(value,xpos+5,25*index+40,"consolas",10,"normal",objectTxt);
+	valueTxt += "</g>"
+	return {"svgString":valueTxt,"width":40,"height":25,"y":(-14+40+25*index)};
+}
+function hideTippy(node)
+{
+	if (node.data("tippy"))
+		node.data("tippy").hide();
+}
+function showTippy(node)
+{
+	cy.nodes().forEach(hideTippy);
+	if (!node.data('tippy'))
+	{	
+		var domObject = document.createElement('div')
+		if (node.data("group") == "VARIABLE_NODE")
+		{
+			var head = document.createElement('strong')
+			head.innerHTML = 'Variable: ';
+			domObject.appendChild(head);
+		}
+		var typeValue = document.createElement('span')
+		typeValue.innerHTML = node.data("type");
+		domObject.appendChild(typeValue);
+		
+		var tippyobj = tippy( node.popperRef(), {
+        html: domObject,
+        trigger: 'manual',
+		theme: 'variable',
+        arrow: true,
+        placement: 'left',
+        hideOnClick: false,
+        interactive: true
+      } ).tooltips[0];
+		node.data('tippy',tippyobj);
+	}
+	
+	node.data('tippy').show();
+	
+	var dir = -1;
+	var translateWidth = document.getElementsByClassName('tippy-tooltip')[0].clientWidth/2 * 1.25;
+	var zoomratio = cy.zoom();
+	var xdiff = document.getElementsByClassName('tippy-tooltip')[0].clientWidth/2 * (1-zoomratio) + dir*10*zoomratio;
+	document.getElementsByClassName('tippy-tooltip')[0].style.setProperty("transform","matrix("+zoomratio+",0,0,"+zoomratio+","+xdiff+",0)");
+    return ;
+};
+function changeListPage(node)
+{
+	var parentNode = node.parent();
+	var dir = node.data("dir")
+	var pageNumber = parentNode.data("page");
+	var values = parentNode.data("value");
+	pageNumber += dir;
+	if (pageNumber < 0 || pageNumber*2+1 > values.length)
+		return;
+	drawListPage(parentNode,pageNumber)
+	return;
+}
+function drawListPage(pnode,pageNumber)
+{
+	var bodyNode = pnode.children('.pageBody');
+	var values = pnode.data("value");	
+	var valueList = values.slice(pageNumber*2,pageNumber*2+2);
+	var indexList = []
+	if (pnode.data("type") == "DICT")
+		indexList = pnode.data("key").slice(pageNumber*2,pageNumber*2+2);
+	else{
+		indexList = [pageNumber*2]
+		if (valueList.length == 2)
+			indexList.push(pageNumber*2+1);
+	}
+	bodynodeImage = createListBody(pnode.data("type"),bodyNode.width(),indexList,valueList);
+	bodyNode.style('background-image',encodeURI("data:image/svg+xml;base64," + bodynodeImage.bgImage));
+	pnode.data("page",pageNumber);
+	return;
+}
+function generateObjectContent(compoundnode)
+{
+
+	var node = cy.add({
+			group: 'nodes',
+			data: { parent:compoundnode.id()},
+			position: { x: compoundnode.position("x"), y: compoundnode.position("y") }
+		});
+		
+	nodeImage = createListHead(compoundnode.data("type"),3);
+	node.style('width',nodeImage.width);
+	node.style('height',nodeImage.height);
+	node.style('background-image',encodeURI("data:image/svg+xml;base64," + nodeImage.bgImage));
+	node.ungrabify();
+	
+	var xpos = node.position('x');
+	var ypos = node.position('y') + node.height()/2;
+	
+	bodynodeImage = createListBody(compoundnode.data("type"),node.width(),[0,1],[123,456]);
+	ypos = ypos + bodynodeImage.height/2 -2;
+	
+	var bodynode = 
+		cy.add({
+			group: 'nodes',
+			data: { parent:compoundnode.id()},
+			position: { x: xpos, y: ypos }
+		});
+	
+	bodynode.style('width',bodynodeImage.width);
+	bodynode.style('height',bodynodeImage.height);
+	//bodynode.style('background-image',encodeURI("data:image/svg+xml;base64," + bodynodeImage.bgImage));
+	bodynode.addClass("pageBody");
+	bodynode.ungrabify();
+	
+	drawListPage(compoundnode,0);
+	bodynode.hide();
+	
+	ypos = ypos + (bodynode.height()-1)/2-15;
+	
+	var prevbtnnode = 
+		cy.add({
+			group: 'nodes',
+			data: { dir:-1 , parent:compoundnode.id()},
+			position: { x: (xpos-bodynode.width()/2+25), y: ypos }
+		});
+	
+	prevbtnString = createTriangleIcon(0,2,"l",10,60,objectTxt);
+	prevbtnImage = btoa(getSvgHeading(12,12,objectBoxBg)+prevbtnString+"</svg>")
+	prevbtnnode.style('width',12);
+	prevbtnnode.style('height',12);
+	prevbtnnode.style('background-image',encodeURI("data:image/svg+xml;base64," + prevbtnImage));
+	prevbtnnode.addClass('changePage')
+	prevbtnnode.ungrabify();
+	prevbtnnode.hide();
+	
+	var nextbtnnode = 
+		cy.add({
+			group: 'nodes',
+			data: { dir: 1 , parent:compoundnode.id()},
+			position: { x: (xpos+bodynode.width()/2-25), y: ypos }
+		});
+	
+	nextbtnString = createTriangleIcon(0,2,"r",10,60,objectTxt);
+	nextbtnImage = btoa(getSvgHeading(12,12,objectBoxBg)+nextbtnString+"</svg>")
+	nextbtnnode.style('width',12);
+	nextbtnnode.style('height',12);
+	nextbtnnode.style('background-image',encodeURI("data:image/svg+xml;base64," + nextbtnImage));
+	nextbtnnode.addClass('changePage')
+	nextbtnnode.ungrabify();
+	nextbtnnode.hide();
+	
+	node.on('tap',function(evt){
+		var node = evt.target;
+		var parentNode = node.parent()
+		var hiddenChilds = parentNode.children(':hidden').difference(node);
+		if (hiddenChilds.length > 0)
+			hiddenChilds.forEach(n => n.show());
+		else
+			parentNode.children(':visible').difference(node).forEach(n => n.hide());
+	});
+}
+function generateNodeImage(node)
+{
+	if (node.data("group") == "VARIABLE_NODE")
+	{
+		nodeImage = createLeftHead(node.data("label"),node.data("value"));
+		node.style('width',nodeImage.width);
+		node.style('height',nodeImage.height);
+		node.style('background-image',encodeURI("data:image/svg+xml;base64," + nodeImage.bgImage));
+	}
+	else if (node.data("group") == "HEAP_NODE")
+	{
+		//Assume this is an object Node , the grey node in the design, 
+		//Set it to be the compoundnode
+		node.style('border-width',0);
+		generateObjectContent(node)
+		
+	}
+}
+
+var cy = cytoscape({
+  container: document.getElementById('cy'),
+
+  boxSelectionEnabled: false,
+  autounselectify: true,
+	
+  style: cytoscape.stylesheet()
+    .selector('node')
+      .css({
+		'shape': 'rectangle',
+		'background-color':'white'
+      }),
+  elements: {
+	"nodes": [
+            {
+                data: {
+                    id: "$main",
+                    group: "MAIN_NODE",
+                    label: "Main",
+                }
+            },
+            {
+                data: {
+                    id: "1_VAR",
+                    group: "VARIABLE_NODE",
+                    label: "num_of_friends",
+					value: 4,
+                    type: "INTEGER",
+                }
+            },
+			{
+                data: {
+                    id: "2_VAR",
+                    group: "VARIABLE_NODE",
+                    label: "friends",
+                    type: "LIST",
+                }
+            },
+			{
+                data: {
+                    id: "3_VAR",
+                    group: "VARIABLE_NODE",
+                    label: "Best Friend",
+                    type: "STRING",
+					value: "Angela"
+                }
+            },
+			{
+                data: {
+                    id: "4_VAR",
+                    group: "VARIABLE_NODE",
+                    label: "friendsDict",
+                    type: "DICT",
+                }
+            },
+            {
+                data: {
+                    id: "1_HEAP",
+                    group: "HEAP_NODE",
+                    label: "friends",
+                    value: [
+                        "Step",
+                        "Sa",
+                        "Angela"
+                    ],
+                    type: "LIST",
+					page:0
+                }
+			},
+			{
+                data: {
+                    id: "2_HEAP",
+                    group: "HEAP_NODE",
+                    label: "friendsDict",
+					value:[
+						"Red",
+						"Orange",
+						"Yellow"
+					],
+                    key: [
+                        "Step",
+                        "Sa",
+                        "Angela"
+                    ],
+                    type: "DICT",
+					page:0
+                }
+			}
+			
+	],
+	edges: [
+		{data: { source: '2_VAR', target: '1_HEAP' }},
+		{data: { source: '4_VAR', target: '2_HEAP' }},
+		]
+  },
+
+  layout: {
+    name: 'breadthfirst',
+    directed: true,
+    padding: 10
+  }
+}); // cy init
+
+cy.on('drag','node',function(evt)
+{
+	
+	cy.nodes().forEach(hideTippy);
+	var node = evt.target;
+	if (node.isChild())
+	{
+		console.log(node);
+	}
+});
+
+cy.on('click', 'node', function(evt)
+{
+ 
+  var node = evt.target;
+  if (node.data("group") == "VARIABLE_NODE")
+	showTippy(node);
+  if (node.hasClass("changePage"))
+	  changeListPage(node);
+  return;
+});
+
+cy.nodes().forEach(generateNodeImage);
+//generateObjectContent()
+
+</script>
+</body>
+</html>

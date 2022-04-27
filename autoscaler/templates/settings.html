@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>VisCode Settings</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+	<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.slim.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script type="text/javascript">
+		$(function() {
+			$(".form-card :input").prop("disabled", true);
+		});
+
+		function enable_card(checkbox){
+			$("." + checkbox.value + " :input").prop("disabled", !checkbox.checked);
+		}
+	</script>
+
+</head>
+<body>
+<div class="jumbotron">
+ 	<h1 class="display-4">System Settings</h1>
+</div>
+<div class="container">
+	<div class="alert alert-danger">
+		<strong>Danger!</strong> Changing settings may potentially cause a system outage!
+	</div>
+	<div class="alert alert-info">
+		<strong>Info:</strong> To change settings related to a section, click the checkbox in the header.
+	</div>
+	<div class="col-sm-12">
+		<div class="card">
+			<div class="card-header">
+				<div class="form-check">
+					<label class="form-check-label">
+						<input type="checkbox" class="form-check-input p-2" value="granularity"
+							onchange="enable_card(this)"> <strong>Info Granularity Settings</strong>
+					</label>
+				</div>
+			</div>
+			<div class="card-body">
+				<p>
+					These settings control how often the containers are sampled to recieve statistics and consequently how often the screen is updated. You may also define how many points to show on the graph. 
+				</p>
+				<form class="form-card granularity" action="?" method="post">
+					<div class="form-group">
+						<label for="interval">Sampling and Screen Update Interval (Seconds):</label>
+						<input type="number" class="form-control" placeholder="{{ settings['interval'] }}" name="interval">
+					</div>
+					<div class="form-group">
+						<label for="entries_maintained">Entries Maintained in Memory:</label>
+						<input type="number" class="form-control" placeholder="{{ settings['entries_maintained'] }}" name="entries_maintained">
+					</div>
+					<div class="form-group">
+						<label for="entries_shown">Points on Graph:</label>
+						<input type="number" class="form-control" placeholder="{{ settings['entries_shown'] }}" name="entries_shown">
+					</div>
+					<button type="submit" class="btn btn-danger" name="granularity">Save Changes</button>
+				</form>
+			</div>
+		</div>
+		<br>
+		<div class="card">
+			<div class="card-header">
+				<div class="form-check">
+					<label class="form-check-label">
+						<input type="checkbox" class="form-check-input p-2" value="autoscale"
+							onchange="enable_card(this)"> <strong>Autoscaling Settings</strong>
+					</label>
+				</div>
+			</div>
+			<div class="card-body">
+				<p>
+					These settings define the behavior of the autoscaler. The setting "Sampled Statistics Averaged" determines how many past data sample points are used to calculate an average CPU usage. Can be thought about as "How long should the CPU usage be above X before a new container is spawned" where X is the setting defined in the "Autoscaling Threshold" setting.
+				</p>
+				<form class="form-card autoscale" action="?" method="post">
+					<div class="form-group">
+						<label for="stats_counted">Sampled Statistics Averaged:</label>
+						<input type="number" class="form-control" placeholder="{{ settings['stats_counted'] }}" name="stats_counted">
+					</div>
+					<div class="form-group">
+						<label for="threshold">Autoscaling Threshold (%):</label>
+						<input type="number" class="form-control" placeholder="{{ settings['threshold'] }}" name="threshold">
+					</div>
+					<button type="submit" class="btn btn-danger" name="autoscale">Save Changes</button>
+				</form>
+			</div>
+		</div>
+		<br>
+		<div class="card">
+			<div class="card-header">
+				<div class="form-check">
+					<label class="form-check-label">
+						<input type="checkbox" class="form-check-input p-2" value="boundary"
+							onchange="enable_card(this)"> <strong>Container Boundary Settings</strong>
+					</label>
+				</div>
+			</div>
+			<div class="card-body">
+				<p>
+					These settings control the upper and lower bounds of the amount of allowable containers. Note that it is possible to kill containers to a point lower than defined here to handle emergency situations. The lower bound here is defined to control how many containers are created by the system on startup. However, you cannot scale a service beyond the upper bound defined here.
+				</p>
+				<form class="form-card boundary" action="?" method="post">
+					<div class="card-deck">
+						<div class="card bg-light">
+							<h5 class="card-title px-2">Frontend</h5>
+							<div class="row text-center">
+								<div class="col mx-auto">Lower Bound</div>
+								<div class="col mx-auto">Upper Bound</div>
+							</div>
+							<div class="row">
+								<div class="col">
+									<div class="form-group">
+										<input type="number" class="form-control form-control-sm mx-auto col-sm-9" placeholder="{{ settings['lower_frontend'] }}" 
+											name="lower_frontend">
+									</div>
+								</div>
+								<div class="col">
+									<div class="form-group">
+										<input type="number" class="form-control form-control-sm mx-auto col-sm-9" placeholder="{{ settings['upper_frontend'] }}" 
+											name="upper_frontend">
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="card bg-light">
+							<h5 class="card-title px-2">Node JSON Generator</h5>
+							<div class="row text-center">
+								<div class="col mx-auto">Lower Bound</div>
+								<div class="col mx-auto">Upper Bound</div>
+							</div>
+							<div class="row">
+								<div class="col">
+									<div class="form-group">
+										<input type="number" class="form-control form-control-sm mx-auto col-sm-9" placeholder="{{ settings['lower_parser'] }}" 
+											name="lower_parser">
+									</div>
+								</div>
+								<div class="col">
+									<div class="form-group">
+										<input type="number" class="form-control form-control-sm mx-auto col-sm-9" placeholder="{{ settings['upper_parser'] }}" 
+											name="upper_parser">
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="card bg-light">
+							<h5 class="card-title px-2">Python Debuggers</h5>
+							<div class="row text-center">
+								<div class="col mx-auto">Lower Bound</div>
+								<div class="col mx-auto">Upper Bound</div>
+							</div>
+							<div class="row">
+								<div class="col">
+									<div class="form-group">
+										<input type="number" class="form-control form-control-sm mx-auto col-sm-9" placeholder="{{ settings['lower_python'] }}" 
+											name="lower_python">
+									</div>
+								</div>
+								<div class="col">
+									<div class="form-group">
+										<input type="number" class="form-control form-control-sm mx-auto col-sm-9" placeholder="{{ settings['upper_python'] }}" 
+											name="upper_python">
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="card bg-light">
+							<h5 class="card-title px-2">Java Debuggers</h5>
+							<div class="row text-center">
+								<div class="col mx-auto">Lower Bound</div>
+								<div class="col mx-auto">Upper Bound</div>
+							</div>
+							<div class="row">
+								<div class="col">
+									<div class="form-group">
+										<input type="number" class="form-control form-control-sm mx-auto col-sm-9" placeholder="{{ settings['lower_java'] }}" 
+											name="lower_java">
+									</div>
+								</div>
+								<div class="col">
+									<div class="form-group">
+										<input type="number" class="form-control form-control-sm mx-auto col-sm-9" placeholder="{{ settings['upper_java'] }}" 
+											name="upper_java">
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<br>
+					<button type="submit" class="btn btn-danger" name="boundary">Save Changes</button>
+				</form>
+			</div>
+		</div>
+		<br>
+	</div>
+</div>
+</body>
+</html>

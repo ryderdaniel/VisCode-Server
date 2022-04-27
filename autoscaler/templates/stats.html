@@ -1,0 +1,137 @@
+<div id="stats" class="container">
+	<div class="row">
+		<div class="col-sm-12">
+			<h3>Reverse Proxy</h3>
+			<table class="table table-hover">
+				<thead class="thead-dark">
+					<tr>
+					<th>Worker #</th>
+					<th>CPU (%)</th>
+					<th>Memory (%)</th>
+					<th>Network IN</th>
+					<th>Network OUT</th>
+					<th></th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for id in nginx_stats %}
+					<tr>
+						<td>{{id}}</td>
+						<td>{{nginx_stats[id]['cpu']}}</td>
+						<td>{{nginx_stats[id]['mem']}}</td>
+						<td>{{nginx_stats[id]['netIn']}}</td>
+						<td>{{nginx_stats[id]['netOut']}}</td>
+						<td><button type="button" class="btn btn-info btn-sm btn-block" onclick="window.open('/logs/{{nginx_stats[id]['fullname']}}')">Logs</button></td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-6">
+			<h3>Frontend</h3>
+			<table class="table table-hover">
+				<thead class="thead-dark">
+					<tr>
+					<th>#</th>
+					<th>CPU (%)</th>
+					<th>Mem (%)</th>
+					<th><button type="button" class="btn btn-success btn-sm btn-block" onclick="spawnContainer('frontend')">Spawn</button></th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for id in frontend_stats %}
+					<tr>
+						<td>{{id}}</td>
+						<td>{{frontend_stats[id]['cpu']}}</td>
+						<td>{{frontend_stats[id]['mem']}}</td>
+						<td>
+							<button type="button" class="btn btn-info btn-sm col-sm-6" onclick="window.open('/logs/{{frontend_stats[id]['fullname']}}')">Logs</button>
+							<button type="button" class="btn btn-danger btn-sm col-sm-4" onclick="killContainer('{{frontend_stats[id]['fullname']}}')">Kill</button>
+						</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		<div class="col-sm-6">
+			<h3>Node JSON Generator</h3>
+			<table class="table table-hover">
+				<thead class="thead-dark">
+					<tr>
+					<th>#</th>
+					<th>CPU (%)</th>
+					<th>Mem (%)</th>
+					<th><button type="button" class="btn btn-success btn-sm btn-block" onclick="spawnContainer('node-parser-api')">Spawn</button></th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for id in parser_stats %}
+					<tr>
+						<td>{{id}}</td>
+						<td>{{parser_stats[id]['cpu']}}</td>
+						<td>{{parser_stats[id]['mem']}}</td>
+						<td>
+							<button type="button" class="btn btn-info btn-sm col-sm-6" onclick="window.open('/logs/{{parser_stats[id]['fullname']}}')">Logs</button>
+							<button type="button" class="btn btn-danger btn-sm col-sm-4" onclick="killContainer('{{parser_stats[id]['fullname']}}')">Kill</button>
+						</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		<div class="col-sm-6">
+			<h3>Python Debuggers</h3>
+			<table class="table table-hover">
+				<thead class="thead-dark">
+					<tr>
+					<th>#</th>
+					<th>CPU (%)</th>
+					<th>Mem (%)</th>
+					<th><button type="button" class="btn btn-success btn-sm btn-block" onclick="spawnContainer('vis-python-api')">Spawn</button></th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for id in py_debugger_stats %}
+					<tr>
+						<td>{{id}}</td>
+						<td>{{py_debugger_stats[id]['cpu']}}</td>
+						<td>{{py_debugger_stats[id]['mem']}}</td>
+						<td>
+							<button type="button" class="btn btn-info btn-sm col-sm-6" onclick="window.open('/logs/{{py_debugger_stats[id]['fullname']}}')">Logs</button>
+							<button type="button" class="btn btn-danger btn-sm col-sm-4" onclick="killContainer('{{py_debugger_stats[id]['fullname']}}')">Kill</button>
+						</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		<div class="col-sm-6">
+			<h3>Java Debuggers</h3>
+			<table class="table table-hover">
+				<thead class="thead-dark">
+					<tr>
+					<th>#</th>
+					<th>CPU (%)</th>
+					<th>Mem (%)</th>
+					<th><button type="button" class="btn btn-success btn-sm btn-block" onclick="spawnContainer('vis-java-api')">Spawn</button></th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for id in java_debugger_stats %}
+					<tr>
+						<td>{{id}}</td>
+						<td>{{java_debugger_stats[id]['cpu']}}</td>
+						<td>{{java_debugger_stats[id]['mem']}}</td>
+						<td>
+							<button type="button" class="btn btn-info btn-sm col-sm-6" onclick="window.open('/logs/{{java_debugger_stats[id]['fullname']}}')">Logs</button>
+							<button type="button" class="btn btn-danger btn-sm col-sm-4" onclick="killContainer('{{java_debugger_stats[id]['fullname']}}')">Kill</button>
+						</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
